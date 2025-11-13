@@ -1,0 +1,14 @@
+-- **Desde system
+
+-- Creamos todos los roles 
+
+
+ALTER SESSION SET CONTAINER = XEPDB1;
+
+-- 2. Crear los roles
+CREATE ROLE ROL_GESTOR;
+CREATE ROLE ROL_RECOLECCION;
+CREATE ROLE ROL_ANALISTA;
+
+COMMIT;
+
