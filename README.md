@@ -9,7 +9,7 @@ Sistema completo de monitoreo ambiental que permite registrar múltiples ríos, 
 - Sistema de roles y permisos (ROL_GESTOR, ROL_RECOLECCION, ROL_ANALISTA)
 - Triggers de auditoría para todas las operaciones
 
-### Backend (Spring Boot - Java 17)
+### Backend (Spring Boot - Java 21)
 - API REST con endpoints CRUD
 - Integración con Oracle Database mediante JPA/Hibernate
 - DTOs para transferencia de datos complejos
@@ -109,13 +109,13 @@ monitoreo-calidad-agua/
 ### Configuración
 
 **Requisitos:**
-- Java 17+
+- Java 21
 - Maven 3.6+
 - Oracle Database XE configurado
 
 **application.properties:**
 ```properties
-spring.datasource.url=jdbc:oracle:thin:@localhost:1521:XE
+spring.datasource.url=jdbc:oracle:thin:@localhost:1521:XEPDB1
 spring.datasource.username=MONITOREO_ADMIN
 spring.datasource.password=12345
 ```
@@ -155,7 +155,7 @@ La aplicación se ejecutará en `http://localhost:8080`
 - `PUT /api/parametros/{id}` - Actualizar parámetro
 - `DELETE /api/parametros/{id}` - Eliminar parámetro
 
-### Muestras (Endpoint Complejo)
+### Muestras 
 - `POST /api/muestras` - Registrar muestra con múltiples mediciones
 
 **Ejemplo de JSON:**
@@ -181,69 +181,99 @@ La aplicación se ejecutará en `http://localhost:8080`
 - `GET /api/reportes/mediciones-completas` - Mediciones completas (JOIN de 5 tablas)
 - `GET /api/reportes/promedio-ph` - Promedio de pH por río (AVG + GROUP BY)
 
----
+## Pruebas con Postman
 
-## Tareas Completadas
-
-### Base de Datos (Oracle)
-- [x] Tarea 1: Creación del Esquema (01_schema.sql)
-- [x] Tarea 2: Creación de Datos de Prueba (02_test_data.sql)
-- [x] Tarea 3: Definición de Roles (03_roles.sql)
-- [x] Tarea 4: Asignación de Permisos (04_permissions.sql)
-- [x] Tarea 5: Creación de Triggers de Auditoría (07_triggers.sql)
-
-### Backend (Spring Boot)
-- [x] Tarea 6: Configuración Inicial (pom.xml, application.properties)
-- [x] Tarea 7: Creación de 5 Entidades
-- [x] Tarea 8: CRUD para Río
-- [x] Tarea 9: CRUD para Sensores
-- [x] Tarea 10: CRUD para Parámetro
-- [x] Tarea 11: Endpoint POST /muestras (registro complejo)
-- [x] Tarea 12: Endpoint GET /reportes/rios-y-sensores
-- [x] Tarea 12b: Endpoint GET /reportes/mediciones-completas
-- [x] Tarea 13: Endpoint GET /reportes/promedio-ph
+* **URL Base:** `http://localhost:8080/api`
+* **Headers (Encabezados):**
+    * `Content-Type`: `application/json`
 
 ---
 
-## Pruebas con Postman/cURL
+### 1. Gestión de Ríos (CRUD)
 
-### Crear un río
-```bash
-curl -X POST http://localhost:8080/api/rios \
-  -H "Content-Type: application/json" \
-  -d '{"nombre":"Río Amazonas","longitud":6400.00}'
-```
+* **Crear un Río (POST)**
+    * **Endpoint:** `/rios`
+    * **Body (JSON):**
+        ```json
+        {
+            "nombre": "Río Amazonas",
+            "longitud": 6400.00
+        }
+        ```
 
-### Obtener todos los ríos
-```bash
-curl http://localhost:8080/api/rios
-```
+* **Listar Ríos (GET)**
+    * **Endpoint:** `/rios`
 
-### Registrar muestra con mediciones
-```bash
-curl -X POST http://localhost:8080/api/muestras \
-  -H "Content-Type: application/json" \
-  -d '{
-    "idSensor": 1,
-    "fechaMuestra": "2025-09-05T10:30:00",
-    "mediciones": [
-      {"idParametro": 1, "valor": 25.0},
-      {"idParametro": 2, "valor": 7.5}
-    ]
-  }'
-```
-
-### Obtener reporte de mediciones completas
-```bash
-curl http://localhost:8080/api/reportes/mediciones-completas
-```
+* **Actualizar Río (PUT)**
+    * **Endpoint:** `/rios/{id}` (ej. `/rios/1`)
+    * **Body (JSON):**
+        ```json
+        {
+            "nombre": "Río Magdalena - Monitoreado",
+            "longitud": 1528.00
+        }
+        ```
 
 ---
+
+### 2. Registro de Muestras 
+
+Este es el endpoint principal que registra una muestra y sus mediciones en una sola peticion
+
+* **Registrar Muestra y Mediciones (POST)**
+    * **Endpoint:** `/muestras`
+    * **Body (JSON):**
+        ```json
+        {
+            "idSensor": 1,
+            "fechaMuestra": "2025-11-21T10:00:00",
+            "mediciones": [
+                {
+                    "idParametro": 1,
+                    "valor": 24.5
+                },
+                {
+                    "idParametro": 2,
+                    "valor": 7.2
+                }
+            ]
+        }
+        ```
+
+---
+
+### 3. Reportes y Consultas
+
+Estos endpoints ejecutan consultas complejas (JOINs y Agregaciones) en la base de datos.
+
+* **Reporte de Ríos y Sensores (GET)**
+    * **Endpoint:** `/reportes/rios-y-sensores`
+    * *Descripción: Muestra qué sensores están instalados en cada río.*
+
+* **Reporte Completo de Mediciones (GET)**
+    * **Endpoint:** `/reportes/mediciones-completas`
+    * *Descripción: Une las 5 tablas para mostrar el detalle de cada medición.*
+
+* **Promedio de pH por Río (GET)**
+    * **Endpoint:** `/reportes/promedio-ph`
+    * *Descripción: Calcula el promedio de acidez agrupado por río.*
+
+---
+
+### 4. Auditoría y Seguridad
+
+Consulta el historial de cambios registrado automáticamente por los Triggers de Oracle.
+
+* **Ver Historial de Auditoría (GET)**
+    * **Endpoint:** `/auditoria`
+    * *Descripción: Muestra todas las operaciones (INSERT, UPDATE, DELETE) realizadas en el sistema, ordenadas de la más reciente a la más antigua.*
+
+
 
 ## Tecnologías Utilizadas
 
 - **Base de Datos**: Oracle Database XE
-- **Backend**: Spring Boot 3.2.0, Java 17
+- **Backend**: Spring Boot 3.2.0, Java 21
 - **ORM**: Spring Data JPA / Hibernate
 - **Build Tool**: Maven
 - **Dependencias adicionales**: Lombok, Jackson
@@ -252,25 +282,8 @@ curl http://localhost:8080/api/reportes/mediciones-completas
 
 ## Autores
 
-Proyecto desarrollado para el curso de Bases de Datos 2.
+
+
 
 ---
 
-## Notas Importantes
-
-1. Asegúrate de ejecutar los scripts SQL en el orden correcto (00 → 07)
-2. El usuario `MONITOREO_ADMIN` debe existir antes de ejecutar los scripts de schema
-3. Configura correctamente las credenciales en `application.properties`
-4. Los triggers de auditoría registran automáticamente todas las operaciones
-5. Para producción, cambiar las contraseñas por defecto
-
----
-
-## Próximas Mejoras (Opcional)
-
-- [ ] Agregar validaciones de negocio más robustas
-- [ ] Implementar manejo de excepciones personalizado
-- [ ] Agregar pruebas unitarias con JUnit
-- [ ] Documentación con Swagger/OpenAPI
-- [ ] Frontend con React o Angular
-- [ ] Dockerización del proyecto
