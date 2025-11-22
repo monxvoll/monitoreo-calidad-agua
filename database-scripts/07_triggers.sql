@@ -18,7 +18,6 @@ CREATE SEQUENCE SEQ_AUDITORIA START WITH 1 INCREMENT BY 1;
 
 -- TRIGGERS PARA LA TABLA RIO
 
-
 -- Trigger para INSERT en Rio
 CREATE OR REPLACE TRIGGER trg_audit_rio_insert
 AFTER INSERT ON Rio
@@ -297,28 +296,5 @@ END;
 
 COMMIT;
 
--- PRUEBAS DE QUE TODO FUNCIONE
-
-INSERT INTO Parametro (id_parametro, tipo, unidad) 
-VALUES (SEQ_PARAMETRO.NEXTVAL, 'Turbidez', 'NTU');
-
-COMMIT;
-
-SELECT * FROM Auditoria ORDER BY fecha_operacion DESC;
-
--- 1. Insertar una medición de prueba 
--- Usamos una muestra y parametro que ya existan (1 y 1)
-INSERT INTO Medicion (id_medicion, valor, id_muestra, id_parametro)
-VALUES (SEQ_MEDICION.NEXTVAL, 50.0, 1, 1);
-
--- 2. Actualizarla (Corregir el valor a 25.0) -> PROBAR UPDATE y lo de guardar datos antiguos
-UPDATE Medicion 
-SET valor = 25.0 
-WHERE valor = 50.0;
-
-COMMIT;
-
--- 3. Ver la auditoría 
-SELECT * FROM Auditoria 
-WHERE nombre_tabla = 'Medicion'
-ORDER BY fecha_operacion DESC;
+-- Consulta para ver la auditoria
+-- SELECT * FROM Auditoria ORDER BY fecha_operacion DESC;
