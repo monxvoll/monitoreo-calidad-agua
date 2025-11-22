@@ -278,12 +278,5 @@ Consulta el historial de cambios registrado automáticamente por los Triggers de
 - **Build Tool**: Maven
 - **Dependencias adicionales**: Lombok, Jackson
 
----
 
-## Autores
-
-
-
-
----
 
